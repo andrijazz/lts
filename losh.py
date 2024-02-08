@@ -1,47 +1,23 @@
-import os
-
 import numpy as np
 import torch
 import torch.nn.functional as F
-import torch.nn as nn
+
 
 def get_msp_score(logits):
     scores = np.max(F.softmax(logits, dim=1).detach().cpu().numpy(), axis=1)
     return scores
 
-def get_energy_score(logits, temp=None):
-    if temp is None:
-        scores = torch.logsumexp(logits.data.cpu(), dim=1).numpy()
-    else:
-        scores = temp * torch.logsumexp(logits * temp[:, None], dim=1)
-        scores = scores.detach().cpu().numpy()
+def get_energy_score(logits):
+    scores = torch.logsumexp(logits.data.cpu(), dim=1).numpy()
     return scores
 
 
-def get_score(logits, method, temp=None):
+def get_score(logits, method):
     if method == "msp":
         return get_msp_score(logits)
     if method == "energy":
-        return get_energy_score(logits, temp)
+        return get_energy_score(logits)
     exit('Unsupported scoring method')
-
-
-def ash_b(x, percentile=65):
-    assert x.dim() == 4
-    assert 0 <= percentile <= 100
-    b, c, h, w = x.shape
-
-    # calculate the sum of the input per sample
-    s1 = x.sum(dim=[1, 2, 3])
-
-    n = x.shape[1:].numel()
-    k = n - int(np.round(n * percentile / 100.0))
-    t = x.view((b, c * h * w))
-    v, i = torch.topk(t, k, dim=1)
-    fill = s1 / k
-    fill = fill.unsqueeze(dim=1).expand(v.shape)
-    t.zero_().scatter_(dim=1, index=i, src=fill)
-    return x
 
 
 def ash_b_2d(x, percentile=65):
@@ -57,24 +33,6 @@ def ash_b_2d(x, percentile=65):
     fill = fill.unsqueeze(dim=1).expand(v.shape)
     x.zero_().scatter_(dim=1, index=i, src=fill)
     return x
-
-
-def ash_p(x, percentile=65):
-    assert x.dim() == 4
-    assert 0 <= percentile <= 100
-
-    b, c, h, w = x.shape
-
-    n = x.shape[1:].numel()
-    k = n - int(np.round(n * percentile / 100.0))
-    # t = x.view((b, c * h * w))
-    t = x.clone()
-    t = t.reshape((b, c * h * w))
-    v, i = torch.topk(t, k, dim=1)
-    t.zero_().scatter_(dim=1, index=i, src=v)
-    x = t.reshape((b, c, h, w))
-    return x
-
 
 def ash_p_2d(x, percentile=65):
     assert x.dim() == 2
@@ -100,7 +58,6 @@ def losh_2d(x, percentile=65):
     return s1 / s2
 
 
-
 def kurtosis(t, dim):
     mean = torch.mean(t, dim=dim, keepdim=True)
     diffs = t - mean
@@ -110,22 +67,6 @@ def kurtosis(t, dim):
     # skews = torch.mean(torch.pow(zscores, 3.0))
     k = torch.mean(torch.pow(zscores, 4.0), dim=dim, keepdim=True) - 3.0
     return k.squeeze(1).detach().cpu()
-
-def free_ood_2d(x, percentile=65):
-    assert x.dim() == 2
-    assert 0 <= percentile <= 100
-    a = x.amax(dim=1)
-    x = F.relu(x)
-    s1 = x.sum(1)
-    n = x.shape[1:].numel()
-    k = n - int(np.round(n * percentile / 100.0))
-    v, i = torch.topk(x, k, dim=1)
-    # high = torch.zeros_like(x)
-    # high.scatter_(dim=1, index=i, src=torch.ones_like(v))
-    s2 = v.sum(dim=1)
-    return (s1 / s2), (1 / a)
-
-
 
 
 def scale(x, percentile=65):
@@ -147,7 +88,6 @@ def scale(x, percentile=65):
 
     # apply sharpening
     scale = s1 / s2
-
     return input * torch.exp(scale[:, None, None, None])
 
 
@@ -220,19 +160,3 @@ def apply_ash(x, method):
         return eval(fn)(x, float(t))
 
     return x
-
-
-class Ash(nn.Module):
-    def __init__(self, ash_type: str,  percentile: int):
-        super().__init__()
-        self.ash_type = ash_type
-        self.percentile = percentile
-
-    def forward(self, x):
-        if self.ash_type == 'ash_p':
-            return ash_p(x, self.percentile)
-        elif self.ash_type == 'ash_b':
-            return ash_b(x, self.percentile)
-        elif self.ash_type == 'ash_s':
-            return ash_s(x, self.percentile)
-        return x

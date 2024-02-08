@@ -3,67 +3,19 @@
 import argparse
 import os
 from datetime import datetime
-import plotly.express as px
-import plotly.io as pio
-import plotly.graph_objects as go
-pio.renderers.default = "browser"
+
 
 import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-import wandb
-from ash import get_score
+from losh import get_score
 from datasets.dataset_factory import build_dataset, get_num_classes
-# from datasets.dataset_factory_v2 import build_dataset, get_num_classes
 from models.model_factory import build_model
 from utils.metrics import compute_in, compute_traditional_ood
 from utils.utils import is_debug_session, load_config_yml, set_deterministic
 
-
-def plot_vis(id_sample, ood_sample):
-
-    fig = go.Figure()
-    hist = torch.histogram(id_sample['penultimate_activation'], bins=200, range=[0, 10])
-    amax = torch.amax(id_sample['penultimate_activation']).item()
-    fig.add_trace(go.Scatter(x=hist.bin_edges[:-1],
-                             y=hist.hist,
-                             mode='lines',
-                             name='ID',
-                             line=dict(color='green')))
-    fig.add_vline(x=amax, line_width=3, line_dash="dash", line_color="green", annotation_text="max ID")
-
-    hist = torch.histogram(ood_sample['penultimate_activation'], bins=200, range=[0, 10])
-    amax = torch.amax(ood_sample['penultimate_activation']).item()
-    fig.add_trace(go.Scatter(x=hist.bin_edges[:-1],
-                             y=hist.hist,
-                             mode='lines',
-                             name='OOD',
-                             line=dict(color='red')))
-    fig.add_vline(x=amax, line_width=3, line_dash="dash", line_color="red", annotation_text="max OOD")
-
-    fig_logits = go.Figure()
-    hist = torch.histogram(id_sample['logits'], bins=200, range=[-20, 20])
-    fig_logits.add_trace(go.Scatter(x=hist.bin_edges[:-1],
-                                    y=hist.hist,
-                                    mode='lines',
-                                    name='ID',
-                                    line=dict(color='green')))
-
-    hist = torch.histogram(ood_sample['logits'], bins=200, range=[-20, 20])
-    fig_logits.add_trace(go.Scatter(x=hist.bin_edges[:-1],
-                                    y=hist.hist,
-                                    mode='lines',
-                                    name='OOD',
-                                    line=dict(color='red')))
-
-    wandb.log({
-        f"id_image": wandb.Image(id_sample['image'], caption=f"{id_sample['dataset']} image"),
-        f"ood_image": wandb.Image(ood_sample['image'], caption=f"{ood_sample['dataset']} image"),
-        f"penultimate_activation_distribution": fig,
-        f"logits_distribution": fig_logits
-    })
 
 
 def eval_id_dataset(model, transform, dataset_name, output_dir, batch_size, scoring_method, use_gpu, use_tqdm):
@@ -209,11 +161,9 @@ def ood_eval(config, use_gpu, use_tqdm):
     if use_gpu:
         model = model.cuda()
 
-    id_sample = eval_id_dataset(model, transform, config['id_dataset'], output_dir, config['batch_size'], config['scoring_method'], use_gpu, use_tqdm)
+    eval_id_dataset(model, transform, config['id_dataset'], output_dir, config['batch_size'], config['scoring_method'], use_gpu, use_tqdm)
     for ood_dataset in config['ood_datasets']:
         eval_ood_dataset(model, transform, ood_dataset, output_dir, config['batch_size'], config['scoring_method'], use_gpu, use_tqdm)
-
-    # plot_vis(id_sample, ood_sample)
 
     name = f"{config['method']} - {config['scoring_method']} - {config['id_dataset']}"
     print(name)
@@ -226,9 +176,6 @@ if __name__ == "__main__":
     parser.add_argument("--config", required=True, type=str, help="Path to config YML")
     parser.add_argument("--use-gpu", action="store_true", default=False, help="Enables GPU")
     parser.add_argument("--use-tqdm", action="store_true", default=False, help="Enables progress bar")
-    parser.add_argument("--use-wandb", action="store_true", default=False, help="Enables wandb")
     args = parser.parse_args()
-    if args.use_wandb:
-        wandb.init(project="ash")
     config = load_config_yml(args.config)
     ood_eval(config, args.use_gpu, args.use_tqdm)

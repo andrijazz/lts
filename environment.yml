@@ -16,3 +16,4 @@ dependencies:
     - ray[default]==2.9.0
     - ray[tune]==2.9.0
     - matplotlib==3.4.3
+    - plotly==5.18.0
