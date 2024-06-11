@@ -14,7 +14,7 @@ from datasets.dataset_factory import build_dataset, get_num_classes
 from lts import get_ood_detector
 from models.model_factory import build_model
 from utils.metrics import compute_in, compute_traditional_ood
-from utils.utils import is_debug_session, load_config_yml
+from utils.utils import is_debug_session, load_config_yml, set_deterministic
 
 
 def get_msp_score(logits):
@@ -38,12 +38,12 @@ def get_score(logits, method):
 def eval_id_dataset(model, transform, dataset_name, output_dir, batch_size, scoring_method, use_gpu, use_tqdm):
     print(f'Processing {dataset_name} dataset.')
     dataset = build_dataset(dataset_name, transform, train=False)
-    # g, seed_worker = set_deterministic()
+    g, seed_worker = set_deterministic()
 
     # setup dataset
     kwargs = {}
     if torch.cuda.is_available() and not is_debug_session():
-        kwargs = {'num_workers': 5} #'pin_memory': True, 'generator': g, 'worker_init_fn': seed_worker}
+        kwargs = {'num_workers': 5, 'pin_memory': True, 'generator': g, 'worker_init_fn': seed_worker}
 
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, **kwargs)
 
@@ -91,12 +91,12 @@ def eval_id_dataset(model, transform, dataset_name, output_dir, batch_size, scor
 def eval_ood_dataset(model, transform, dataset_name, output_dir, batch_size, scoring_method, use_gpu, use_tqdm):
     print(f'Processing {dataset_name} dataset.')
     dataset = build_dataset(dataset_name, transform, train=False)
-    # g, seed_worker = set_deterministic()
+    g, seed_worker = set_deterministic()
 
     # setup dataset
     kwargs = {}
     if torch.cuda.is_available() and not is_debug_session():
-        kwargs = {'num_workers': 5} #'pin_memory': True, 'generator': g, 'worker_init_fn': seed_worker}
+        kwargs = {'num_workers': 5, 'pin_memory': True, 'generator': g, 'worker_init_fn': seed_worker}
 
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, **kwargs)
 
