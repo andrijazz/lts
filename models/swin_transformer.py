@@ -610,15 +610,16 @@ class SwinTransformer(nn.Module):
         x = self.permute(x)
         x = self.avgpool(x)
         x = self.flatten(x)
-        s = None
-        if hasattr(self, "ood_detector") and hasattr(self, "p") and hasattr(self, "adjust_activations"):
-            if self.adjust_activations:
-                x = self.ood_detector(x, self.p)
+        if hasattr(self, "ood_detector") and hasattr(self, "ood_method_name"):
+            if self.ood_method_name != "lts":
+                x = self.ood_detector(x)
+                x = self.head(x)
             else:
                 s = self.ood_detector(x)
-        x = self.head(x)
-        if s:
-            x = x * s
+                x = self.head(x)
+                x = x * s
+        else:
+            x = self.head(x)
         return x
 
 

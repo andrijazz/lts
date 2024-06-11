@@ -12,5 +12,9 @@ config:
     # scoring method
     scoring_method: "energy"
     # method
-    method: "scale@85"
+    method: "lts@95"
     
+# scale@90
+# ash_s@90
+# lts@95
+#

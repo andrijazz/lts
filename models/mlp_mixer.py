@@ -144,18 +144,16 @@ class MlpMixer(nn.Module):
         x = self.pre_head_ln(x)
         x = torch.mean(x, dim=1)
 
-        # ood detection adjustments
-        s = None
-        if hasattr(self, "ood_detector") and hasattr(self, "p") and hasattr(self, "adjust_activations"):
-            if self.adjust_activations:
-                x = self.ood_detector(x, self.p)
+        if hasattr(self, "ood_detector") and hasattr(self, "ood_method_name"):
+            if self.ood_method_name != "lts":
+                x = self.ood_detector(x)
+                logits = self.head(x)
             else:
                 s = self.ood_detector(x)
-
-        logits = self.head(x)
-
-        if s:
-            logits = logits * s
+                logits = self.head(x)
+                logits = logits * s
+        else:
+            logits = self.head(x)
 
         if return_feature:
             return logits, x

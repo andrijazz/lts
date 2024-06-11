@@ -77,17 +77,17 @@ def get_ood_detector(method):
     try:
         [fn, p] = method.split('@')
         if fn == 'ash_b':
-            return lambda x: ash_b(x, int(p))
+            return lambda x: ash_b(x, int(p)), fn
         if fn == 'ash_s':
-            return lambda x: ash_s(x, int(p))
+            return lambda x: ash_s(x, int(p)), fn
         if fn == 'lts':
-            return lambda x: lts(x, int(p))
+            return lambda x: lts(x, int(p)), fn
         if fn == 'ash_p':
-            return lambda x: ash_p(x, int(p))
+            return lambda x: ash_p(x, int(p)), fn
         if fn == 'scale':
-            return lambda x: scale(x, int(p))
+            return lambda x: scale(x, int(p)), fn
         if fn == 'react':
-            return lambda x: react(x, int(p))
+            return lambda x: react(x, int(p)), fn
 
     except Exception as e:
         print(e)

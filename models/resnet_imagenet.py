@@ -240,9 +240,16 @@ class ResNet(nn.Module):
         x = self.layer4(x)
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
-        if hasattr(self, "ood_detector"):
-            x = self.ood_detector(x)
-        x = self.fc(x)
+        if hasattr(self, "ood_detector") and hasattr(self, "ood_method_name"):
+            if self.ood_method_name != "lts":
+                x = self.ood_detector(x)
+                x = self.fc(x)
+            else:
+                s = self.ood_detector(x)
+                x = self.fc(x)
+                x = x * s
+        else:
+            x = self.fc(x)
         return x
 
     def forward(self, x: Tensor):

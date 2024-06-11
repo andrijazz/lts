@@ -64,15 +64,16 @@ class VGG(nn.Module):
         x = self.features(x)
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
-        s = None
-        if hasattr(self, "ood_detector") and hasattr(self, "p") and hasattr(self, "adjust_activations"):
-            if self.adjust_activations:
-                x = self.ood_detector(x, self.p)
+        if hasattr(self, "ood_detector") and hasattr(self, "ood_method_name"):
+            if self.ood_method_name != "lts":
+                x = self.ood_detector(x)
+                x = self.classifier(x)
             else:
                 s = self.ood_detector(x)
-        x = self.classifier(x)
-        if s:
-            x = x * s
+                x = self.classifier(x)
+                x = x * s
+        else:
+            x = self.classifier(x)
         return x
 
 

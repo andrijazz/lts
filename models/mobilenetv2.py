@@ -192,17 +192,16 @@ class MobileNetV2(nn.Module):
         # Cannot use "squeeze" as batch-size can be 1
         x = nn.functional.adaptive_avg_pool2d(x, (1, 1))
         x = torch.flatten(x, 1)
-        s = None
-        if hasattr(self, "ood_detector") and hasattr(self, "p") and hasattr(self, "adjust_activations"):
-            if self.adjust_activations:
-                x = self.ood_detector(x, self.p)
+        if hasattr(self, "ood_detector") and hasattr(self, "ood_method_name"):
+            if self.ood_method_name != "lts":
+                x = self.ood_detector(x)
+                x = self.classifier(x)
             else:
                 s = self.ood_detector(x)
-
-        x = self.classifier(x)
-
-        if s:
-            x = x * s
+                x = self.classifier(x)
+                x = x * s
+        else:
+            x = self.classifier(x)
         return x
 
     def forward(self, x: Tensor) -> Tensor:

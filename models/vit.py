@@ -265,15 +265,16 @@ class VisionTransformer(nn.Module):
 
         x = self.encoder(x)
         x = x[:, 0]
-        s = None
-        if hasattr(self, "ood_detector") and hasattr(self, "p") and hasattr(self, "adjust_activations"):
-            if self.adjust_activations:
-                x = self.ood_detector(x, self.p)
+        if hasattr(self, "ood_detector") and hasattr(self, "ood_method_name"):
+            if self.ood_method_name != "lts":
+                x = self.ood_detector(x)
+                x = self.heads(x)
             else:
                 s = self.ood_detector(x)
-        x = self.heads(x)
-        if s:
-            x = x * s
+                x = self.heads(x)
+                x = x * s
+        else:
+            x = self.heads(x)
         return x
 
 

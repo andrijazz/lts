@@ -125,15 +125,14 @@ class DenseNet3(nn.Module):
         out = self.block3(out)
         out = self.relu(self.bn1(out))
         out = F.avg_pool2d(out, 8)
-        # ood detection adjustments
-        s = None
-        if hasattr(self, "ood_detector") and hasattr(self, "p") and hasattr(self, "adjust_activations"):
-            if self.adjust_activations:
-                out = self.ood_detector(out, self.p)
+        if hasattr(self, "ood_detector") and hasattr(self, "ood_method_name"):
+            if self.ood_method_name != "lts":
+                out = self.ood_detector(out)
+                out = self.fc(out)
             else:
                 s = self.ood_detector(out)
-        out = out.view(-1, self.in_planes)
-        out = self.fc(out)
-        if s:
-            out = out * s
+                out = self.fc(out)
+                out = out * s
+        else:
+            out = self.fc(out)
         return out

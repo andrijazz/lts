@@ -142,8 +142,9 @@ def ood_eval(config, use_gpu, use_tqdm):
     model, transform = build_model(config['model_name'], num_classes=num_classes)
 
     # setup ood detector
-    ood_detector = get_ood_detector(config['method'])
+    ood_detector, ood_method_name = get_ood_detector(config['method'])
     model.ood_detector = ood_detector
+    model.ood_method_name = ood_method_name
 
     if config['train_restore_file']:
         checkpoint = os.path.join(os.getenv('MODELS'), config['train_restore_file'])
