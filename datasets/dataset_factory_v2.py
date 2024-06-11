@@ -1,15 +1,13 @@
 import os
 
-import torchvision
-import torchvision.datasets
 from datasets.filelist_dataset import ImageFilelist
+
 
 def build_dataset(dataset_name, transform, train=False):
     dataset_dir = os.getenv('DATASETS')
 
     # imagenet
     if dataset_name == "imagenet":
-        mode_path = "train" if train else "val"
         dataset = ImageFilelist(root=dataset_dir, flist=os.path.join(dataset_dir, 'test_imagenet.txt'), transform=transform)
         return dataset
 

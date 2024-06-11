@@ -1,13 +1,15 @@
-name: losh
+name: lts
 channels:
   - pytorch
+  - nvidia
   - defaults
 dependencies:
   - python=3.8.10
   - pip=20.3
   - pytorch=2.2.0
+  - pytorch-cuda=11.8
   - torchvision=0.17.0
-  - cudatoolkit=11.3
+  - cudatoolkit=11.8
   - numpy=1.19.2
   - pip:
     - scikit-learn==0.23.1
@@ -17,3 +19,4 @@ dependencies:
     - ray[tune]==2.9.0
     - matplotlib==3.4.3
     - plotly==5.18.0
+    - ml_collections

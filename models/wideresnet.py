@@ -3,7 +3,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from ash import apply_ash
+
 
 class BasicBlock(nn.Module):
     def __init__(self, in_planes, out_planes, stride, dropRate=0.0):
@@ -115,7 +115,15 @@ class WideResNet(nn.Module):
         out = self.block3(out)
         out = self.relu(self.bn1(out))
         out = F.avg_pool2d(out, 8)
-        out = apply_ash(out, method=getattr(self, 'ash_method'))
+        s = None
+        if hasattr(self, "ood_detector") and hasattr(self, "p") and hasattr(self, "adjust_activations"):
+            if self.adjust_activations:
+                out = self.ood_detector(out, self.p)
+            else:
+                s = self.ood_detector(out)
         out = out.view(-1, self.nChannels)
-        return self.fc(out)
+        out = self.fc(out)
+        if s:
+            out = out * s
+        return out
 

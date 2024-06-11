@@ -4,18 +4,35 @@ import argparse
 import os
 from datetime import datetime
 
-
 import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from losh import get_score
+
 from datasets.dataset_factory import build_dataset, get_num_classes
+from lts import get_ood_detector
 from models.model_factory import build_model
 from utils.metrics import compute_in, compute_traditional_ood
-from utils.utils import is_debug_session, load_config_yml, set_deterministic
+from utils.utils import is_debug_session, load_config_yml
 
+
+def get_msp_score(logits):
+    scores = np.max(F.softmax(logits, dim=1).detach().cpu().numpy(), axis=1)
+    return scores
+
+
+def get_energy_score(logits):
+    scores = torch.logsumexp(logits.data.cpu(), dim=1).numpy()
+    return scores
+
+
+def get_score(logits, method):
+    if method == "msp":
+        return get_msp_score(logits)
+    if method == "energy":
+        return get_energy_score(logits)
+    exit('Unsupported scoring method')
 
 
 def eval_id_dataset(model, transform, dataset_name, output_dir, batch_size, scoring_method, use_gpu, use_tqdm):
@@ -46,7 +63,7 @@ def eval_id_dataset(model, transform, dataset_name, output_dir, batch_size, scor
                 images = images.cuda(non_blocking=True)
                 labels = labels.cuda(non_blocking=True)
 
-            logits, stats = model(images)
+            logits = model(images)
             outputs = F.softmax(logits, dim=1)
             outputs = outputs.detach().cpu().numpy()
             preds = np.argmax(outputs, axis=1)
@@ -55,24 +72,12 @@ def eval_id_dataset(model, transform, dataset_name, output_dir, batch_size, scor
             for k in range(preds.shape[0]):
                 g1.write("{} {} {}\n".format(labels[k], preds[k], confs[k]))
 
-            # scaled_logits = (1 / stats['kurtosis'])[:, None] * logits.detach().cpu()
             scores = get_score(logits, scoring_method)
-            # scores = -stats['kurtosis']
             for score in scores:
                 f1.write("{}\n".format(score))
 
             if use_tqdm:
                 progress_bar.update()
-
-            # if i == 0:
-            #     images = images.detach().cpu()
-            #     penultimate_activation = stats['penultimate_activation']
-            #     logits = logits.detach().cpu()
-            #     random_sample['image'] = images[0]
-            #     random_sample['penultimate_activation'] = penultimate_activation[0]
-            #     random_sample['logits'] = logits[0]
-            #     random_sample['dataset'] = dataset_name
-            # break
 
         f1.close()
         g1.close()
@@ -81,6 +86,7 @@ def eval_id_dataset(model, transform, dataset_name, output_dir, batch_size, scor
             progress_bar.close()
 
         return random_sample
+
 
 def eval_ood_dataset(model, transform, dataset_name, output_dir, batch_size, scoring_method, use_gpu, use_tqdm):
     print(f'Processing {dataset_name} dataset.')
@@ -108,26 +114,13 @@ def eval_ood_dataset(model, transform, dataset_name, output_dir, batch_size, sco
             if use_gpu:
                 images = images.cuda(non_blocking=True)
 
-            logits, stats = model(images)
-            # scaled_logits = (1 / stats['kurtosis'])[:, None] * logits.detach().cpu()
-            # scores = get_score(scaled_logits, scoring_method)
+            logits = model(images)
             scores = get_score(logits, scoring_method)
-            # scores = -stats['kurtosis']
             for score in scores:
                 f1.write("{}\n".format(score))
 
             if use_tqdm:
                 progress_bar.update()
-
-            # if i == 0:
-            #     images = images.detach().cpu()
-            #     penultimate_activation = stats['penultimate_activation']
-            #     logits = logits.detach().cpu()
-            #     random_sample['image'] = images[0]
-            #     random_sample['penultimate_activation'] = penultimate_activation[0]
-            #     random_sample['logits'] = logits[0]
-            #     random_sample['dataset'] = dataset_name
-            # break
 
         f1.close()
 
@@ -147,6 +140,11 @@ def ood_eval(config, use_gpu, use_tqdm):
 
     # construct the model
     model, transform = build_model(config['model_name'], num_classes=num_classes)
+
+    # setup ood detector
+    ood_detector = get_ood_detector(config['method'])
+    model.ood_detector = ood_detector
+
     if config['train_restore_file']:
         checkpoint = os.path.join(os.getenv('MODELS'), config['train_restore_file'])
         checkpoint = torch.load(checkpoint, map_location='cpu')
@@ -154,9 +152,6 @@ def ood_eval(config, use_gpu, use_tqdm):
     else:
         print('Warning: train_restore_file config not specified')
     model.eval()
-
-    # apply ash
-    setattr(model, 'ash_method', config['method'])
 
     if use_gpu:
         model = model.cuda()

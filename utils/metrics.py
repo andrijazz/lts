@@ -174,7 +174,7 @@ def compute_average_results(all_results):
     return avg_results
 
 def compute_traditional_ood(base_dir, out_datasets, method):
-    known = np.loadtxt(f'{base_dir}/in_scores.txt', delimiter='\n')
+    known = np.loadtxt(f'{base_dir}/in_scores.txt')
 
     known_sorted = np.sort(known)
     num_k = known.shape[0]
@@ -189,7 +189,7 @@ def compute_traditional_ood(base_dir, out_datasets, method):
     total = 0.0
 
     for out_dataset in out_datasets:
-        novel = np.loadtxt(f'{base_dir}/{out_dataset}.txt', delimiter='\n')
+        novel = np.loadtxt(f'{base_dir}/{out_dataset}.txt')
 
         in_cond = (novel>threshold).astype(np.float32)
         total += novel.shape[0]
@@ -204,14 +204,14 @@ def compute_stat(base_dir, in_dataset, out_datasets, method, name):
     # print('Natural OOD')
     # print('nat_in vs. nat_out')
 
-    known = np.loadtxt('{base_dir}/{in_dataset}/{method}/{name}/in_scores.txt'.format(base_dir=base_dir, in_dataset=in_dataset, method=method, name=name), delimiter='\n')
+    known = np.loadtxt('{base_dir}/{in_dataset}/{method}/{name}/in_scores.txt'.format(base_dir=base_dir, in_dataset=in_dataset, method=method, name=name), )
 
     print(f"ID mean: {known.mean()} std: {known.std()}")
 
     all_mean = []
     all_std = []
     for out_dataset in out_datasets:
-        novel = np.loadtxt('{base_dir}/{in_dataset}/{method}/{name}/nat/{out_dataset}/out_scores.txt'.format(base_dir=base_dir, in_dataset=in_dataset, method=method, name=name, out_dataset=out_dataset), delimiter='\n')
+        novel = np.loadtxt('{base_dir}/{in_dataset}/{method}/{name}/nat/{out_dataset}/out_scores.txt'.format(base_dir=base_dir, in_dataset=in_dataset, method=method, name=name, out_dataset=out_dataset), )
         all_mean.append(novel.mean())
         all_std.append(novel.std())
 
@@ -219,7 +219,7 @@ def compute_stat(base_dir, in_dataset, out_datasets, method, name):
     return
 
 def compute_in(base_dir, method):
-    known_nat = np.loadtxt(f'{base_dir}/in_scores.txt', delimiter='\n')
+    known_nat = np.loadtxt(f'{base_dir}/in_scores.txt', )
     known_nat_sorted = np.sort(known_nat)
     num_k = known_nat.shape[0]
 

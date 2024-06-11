@@ -3,7 +3,7 @@ from torch import nn
 from torch import Tensor
 from torchvision._internally_replaced_utils import load_state_dict_from_url
 from typing import Callable, Any, Optional, List
-from ash import apply_ash, losh_2d
+
 
 __all__ = ['MobileNetV2', 'mobilenet_v2']
 
@@ -191,12 +191,19 @@ class MobileNetV2(nn.Module):
         x = self.features(x)
         # Cannot use "squeeze" as batch-size can be 1
         x = nn.functional.adaptive_avg_pool2d(x, (1, 1))
-        # x = apply_ash(x, method=getattr(self, 'ash_method'))
         x = torch.flatten(x, 1)
-        # x = ash_s_2d(x, 90)
-        scale = ash_s_2d(x, percentile=90)
+        s = None
+        if hasattr(self, "ood_detector") and hasattr(self, "p") and hasattr(self, "adjust_activations"):
+            if self.adjust_activations:
+                x = self.ood_detector(x, self.p)
+            else:
+                s = self.ood_detector(x)
+
         x = self.classifier(x)
-        return x, scale
+
+        if s:
+            x = x * s
+        return x
 
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)

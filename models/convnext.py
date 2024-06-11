@@ -9,7 +9,7 @@ from torchvision._internally_replaced_utils import load_state_dict_from_url
 from torchvision.ops.misc import ConvNormActivation
 from torchvision.ops.stochastic_depth import StochasticDepth
 from torchvision.utils import _log_api_usage_once
-from ash import apply_ash
+
 
 __all__ = [
     "ConvNeXt",
@@ -181,9 +181,16 @@ class ConvNeXt(nn.Module):
 
     def _forward_impl(self, x: Tensor) -> Tensor:
         x = self.features(x)
-        x = apply_ash(x, method=getattr(self, 'ash_method'))
-        # x = self.avgpool(x)
-        # x = self.classifier(x)
+        x = self.avgpool(x)
+        s = None
+        if hasattr(self, "ood_detector") and hasattr(self, "p") and hasattr(self, "adjust_activations"):
+            if self.adjust_activations:
+                x = self.ood_detector(x, self.p)
+            else:
+                s = self.ood_detector(x)
+        x = self.classifier(x)
+        if s:
+            x = x * s
         return x
 
     def forward(self, x: Tensor) -> Tensor:

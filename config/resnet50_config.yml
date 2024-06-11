@@ -3,10 +3,6 @@ config:
     id_dataset: "imagenet"
     # out-of-distribution datasets
     ood_datasets: ["inaturalist", "sun", "places", "textures"]
-    # near
-    # ood_datasets: ["ssb_hard", "ninco"]
-    # far
-    # ood_datasets: ["inaturalist"]
     # model
     model_name: "resnet50"
     # path to checkpoint from which to be restored

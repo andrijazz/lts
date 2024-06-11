@@ -5,12 +5,9 @@ from typing import Any, Callable, List, NamedTuple, Optional
 
 import torch
 import torch.nn as nn
-
 from torchvision._internally_replaced_utils import load_state_dict_from_url
 from torchvision.ops.misc import ConvNormActivation
 from torchvision.utils import _log_api_usage_once
-from ash import apply_ash, ash_b_2d, ash_p_2d, losh_2d, free_ood_2d
-import torch.nn.functional as F
 
 __all__ = [
     "VisionTransformer",
@@ -267,19 +264,17 @@ class VisionTransformer(nn.Module):
         x = torch.cat([batch_class_token, x], dim=1)
 
         x = self.encoder(x)
-        batch_size = x.shape[0]
-        scale = losh_2d(x[:, 1: :].view((batch_size, -1)), percentile=95)
-        # Classifier "token" as used by standard language architectures
         x = x[:, 0]
-        # x = F.relu(x)
-        # m = x.amax(dim=1)
-        # x = x + m[:, None]
-
-        stats = {
-            # 'penultimate_activation': F.relu(x).clone().detach().cpu()
-        }
+        s = None
+        if hasattr(self, "ood_detector") and hasattr(self, "p") and hasattr(self, "adjust_activations"):
+            if self.adjust_activations:
+                x = self.ood_detector(x, self.p)
+            else:
+                s = self.ood_detector(x)
         x = self.heads(x)
-        return x * (scale[:, None] ** 2), stats
+        if s:
+            x = x * s
+        return x
 
 
 def _vision_transformer(

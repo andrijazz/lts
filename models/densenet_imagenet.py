@@ -10,7 +10,6 @@ from torch import Tensor
 
 from torchvision._internally_replaced_utils import load_state_dict_from_url
 from torchvision.utils import _log_api_usage_once
-from ash import apply_ash
 
 
 __all__ = ["DenseNet", "densenet121", "densenet169", "densenet201", "densenet161"]
@@ -216,9 +215,16 @@ class DenseNet(nn.Module):
         features = self.features(x)
         out = F.relu(features, inplace=True)
         out = F.adaptive_avg_pool2d(out, (1, 1))
-        out = apply_ash(out, getattr(self, 'ash_method'))
         out = torch.flatten(out, 1)
+        s = None
+        if hasattr(self, "ood_detector") and hasattr(self, "p") and hasattr(self, "adjust_activations"):
+            if self.adjust_activations:
+                out = self.ood_detector(out, self.p)
+            else:
+                s = self.ood_detector(out)
         out = self.classifier(out)
+        if s:
+            out = out * s
         return out
 
 

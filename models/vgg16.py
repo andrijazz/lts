@@ -2,12 +2,8 @@ from typing import Union, List, Dict, Any, cast
 
 import torch
 import torch.nn as nn
-
 from torchvision._internally_replaced_utils import load_state_dict_from_url
 from torchvision.utils import _log_api_usage_once
-
-from ash import apply_ash
-
 
 __all__ = [
     "VGG",
@@ -67,9 +63,16 @@ class VGG(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.features(x)
         x = self.avgpool(x)
-        x = apply_ash(x, getattr(self, 'ash_method'))
         x = torch.flatten(x, 1)
+        s = None
+        if hasattr(self, "ood_detector") and hasattr(self, "p") and hasattr(self, "adjust_activations"):
+            if self.adjust_activations:
+                x = self.ood_detector(x, self.p)
+            else:
+                s = self.ood_detector(x)
         x = self.classifier(x)
+        if s:
+            x = x * s
         return x
 
 

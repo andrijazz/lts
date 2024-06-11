@@ -1,12 +1,9 @@
+import os
 from typing import Type, Callable, Union, List, Optional
 
 import torch
 import torch.nn as nn
 from torch import Tensor
-from ash import apply_ash, losh_2d, scale, ash_s, free_ood_2d, kurtosis
-import os
-import scipy.stats
-
 
 
 def conv3x3(in_planes: int, out_planes: int, stride: int = 1, groups: int = 1, dilation: int = 1) -> nn.Conv2d:
@@ -68,8 +65,6 @@ class BasicBlock(nn.Module):
             identity = self.downsample(x)
 
         out += identity
-        if self.use_ash:
-            out = apply_ash(out, method=os.getenv('method'))
         out = self.relu(out)
 
         return out
@@ -133,8 +128,6 @@ class Bottleneck(nn.Module):
             identity = self.downsample(x)
 
         out += identity
-        if self.use_ash:
-            out = apply_ash(out, method=os.getenv('method'))
         out = self.relu(out)
 
         return out
@@ -222,7 +215,7 @@ class ResNet(nn.Module):
         self.inplanes = planes * block.expansion
         i = 1
         for _ in range(1, blocks):
-            if i == blocks - 1 and use_ash:
+            if i == blocks - 1:
                 layers.append(block(self.inplanes, planes, groups=self.groups,
                                 base_width=self.base_width, dilation=self.dilation,
                                 norm_layer=norm_layer, use_ash=use_ash))
@@ -247,17 +240,10 @@ class ResNet(nn.Module):
         x = self.layer4(x)
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
-        # penultimate_activations = x.clone().detach().cpu()
-        # kurtosis = scipy.stats.kurtosis(penultimate_activations.numpy(), axis=1)
-
-        stats = {
-            'kurtosis': kurtosis(x, dim=1),
-            'penultimate_activation': None
-        }
-        # s, a = free_ood_2d(x, 95)
+        if hasattr(self, "ood_detector"):
+            x = self.ood_detector(x)
         x = self.fc(x)
-        # score = (1 + a) * torch.logsumexp(x * s[:, None], dim=1)
-        return x, stats
+        return x
 
     def forward(self, x: Tensor):
         return self._forward_impl(x)

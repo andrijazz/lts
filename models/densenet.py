@@ -4,8 +4,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ash import apply_ash, losh_2d
-
 
 class BasicBlock(nn.Module):
     def __init__(self, in_planes, out_planes, dropRate=0.0):
@@ -127,7 +125,15 @@ class DenseNet3(nn.Module):
         out = self.block3(out)
         out = self.relu(self.bn1(out))
         out = F.avg_pool2d(out, 8)
-        # out = apply_ash(out, method=getattr(self, 'ash_method'))
+        # ood detection adjustments
+        s = None
+        if hasattr(self, "ood_detector") and hasattr(self, "p") and hasattr(self, "adjust_activations"):
+            if self.adjust_activations:
+                out = self.ood_detector(out, self.p)
+            else:
+                s = self.ood_detector(out)
         out = out.view(-1, self.in_planes)
-        scale = losh_2d(out, percentile=95)
-        return self.fc(out), scale
+        out = self.fc(out)
+        if s:
+            out = out * s
+        return out

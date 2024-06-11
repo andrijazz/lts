@@ -11,8 +11,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ash import apply_ash
-
 
 def conv3x3(in_planes, out_planes, stride=1):
     return nn.Conv2d(
@@ -192,8 +190,6 @@ class ResNet(nn.Module):
         out = self.layer3(out)
         out = self.layer4(out)
         out = F.avg_pool2d(out, 4)
-        # out = apply_ash(out, method=getattr(self, 'ash_method'))
-        # out = torch.clip(out, max=1.0)
         out = out.view(out.size(0), -1)
         y = self.linear(out)
         y_c = y.clone()

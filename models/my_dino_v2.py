@@ -5,7 +5,6 @@
 
 import torch
 import torch.nn as nn
-from ash import losh_2d
 
 dependencies = ["torch"]
 
