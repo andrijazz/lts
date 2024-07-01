@@ -134,7 +134,7 @@ class MlpMixer(nn.Module):
             layer = MixerBlock(config)
             self.layer.append(copy.deepcopy(layer))
 
-    def forward(self, x, return_feature=False):
+    def forward(self, x):
         x = self.stem(x)
         x = x.flatten(2)
         x = x.transpose(-1, -2)
@@ -155,10 +155,7 @@ class MlpMixer(nn.Module):
         else:
             logits = self.head(x)
 
-        if return_feature:
-            return logits, x
-        else:
-            return logits, {}
+        return logits
 
     def fc(self, x):
         return self.head(x)

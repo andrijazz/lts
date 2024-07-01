@@ -44,8 +44,6 @@ def ash_s(x, percentile=65):
 def scale(x, percentile=65):
     assert x.dim() == 2
     assert 0 <= percentile <= 100
-    # calculate the sum of the input per sample
-    x = F.relu(x)
     s1 = x.sum(dim=1)
     n = x.shape[1:].numel()
     k = n - int(np.round(n * percentile / 100.0))
@@ -63,13 +61,14 @@ def react(x, threshold):
 def lts(x, percentile=65):
     assert x.dim() == 2
     assert 0 <= percentile <= 100
+    
+    x = F.relu(x)
     s1 = x.sum(dim=1)
     n = x.shape[1:].numel()
     k = n - int(np.round(n * percentile / 100.0))
     v, i = torch.topk(x, k, dim=1)
     s2 = v.sum(dim=1)
     scale = s1 / s2
-    apply_to_logits = True
     return scale[:, None] ** 2
 
 

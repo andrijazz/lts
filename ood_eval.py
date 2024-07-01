@@ -161,7 +161,7 @@ def ood_eval(config, use_gpu, use_tqdm):
     for ood_dataset in config['ood_datasets']:
         eval_ood_dataset(model, transform, ood_dataset, output_dir, config['batch_size'], config['scoring_method'], use_gpu, use_tqdm)
 
-    name = f"{config['method']} - {config['scoring_method']} - {config['id_dataset']}"
+    name = f"{config['method']} - {config['model_name']} - {config['scoring_method']} - {config['id_dataset']}"
     print(name)
     compute_traditional_ood(output_dir, config['ood_datasets'], config['scoring_method'])
     compute_in(output_dir, config['scoring_method'])
@@ -172,6 +172,9 @@ if __name__ == "__main__":
     parser.add_argument("--config", required=True, type=str, help="Path to config YML")
     parser.add_argument("--use-gpu", action="store_true", default=False, help="Enables GPU")
     parser.add_argument("--use-tqdm", action="store_true", default=False, help="Enables progress bar")
+    parser.add_argument("--method", type=str)
     args = parser.parse_args()
     config = load_config_yml(args.config)
+    if args.method:
+        config["method"] = args.method
     ood_eval(config, args.use_gpu, args.use_tqdm)
