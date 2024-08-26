@@ -2,4 +2,4 @@
 
 Logit Shaping for OOD detection.
 
-![](https://github.com/lts/asset/lts.gif)
+![](https://github.com/andrijazz/lts/blob/main/asset/lts.gif)
