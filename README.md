@@ -1,6 +1,6 @@
 # LTS
 
-Logit Shaping for OOD detection.
+Logit Scaling for OOD detection.
 
 ![](https://github.com/andrijazz/lts/blob/main/resources/lts.gif)
 
