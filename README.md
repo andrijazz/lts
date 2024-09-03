@@ -53,17 +53,6 @@ for i, data in enumerate(testloader):
     ood_prediction = get_score(logits * s[:, None])
 ```
 
-## References
-
-```bibtex
-@article{djurisic2022extremely,
-  title={Extremely simple activation shaping for out-of-distribution detection},
-  author={Djurisic, Andrija and Bozanic, Nebojsa and Ashok, Arjun and Liu, Rosanne},
-  journal={arXiv preprint arXiv:2209.09858},
-  year={2022}
-}
-```
-      
 ## Citations
 
 If you use our codebase, please cite our work:
