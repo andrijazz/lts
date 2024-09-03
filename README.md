@@ -19,7 +19,11 @@ $ bash scripts/download.sh
 Please download ImageNet dataset manually to `$DATASET` dir by following [this](https://gist.github.com/bonlime/4e0d236cf98cd5b15d977dfa03a63643) instructions.
 
 ## Run
+
+To reproduce results from the paper, run the following commands:
 ```bash
+$ python ood_eval.py --config config/cifar10_config.yml --use-gpu --use-tqdm
+$ python ood_eval.py --config config/cifar100_config.yml --use-gpu --use-tqdm
 $ python ood_eval.py --config config/resnet50_config.yml --use-gpu --use-tqdm
 ```
 
