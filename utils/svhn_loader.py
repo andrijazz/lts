@@ -92,7 +92,7 @@ class SVHN(data.Dataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        return img, target.astype(np.long)
+        return img, target.astype(np.int64)
 
     def __len__(self):
         if self.split == "test":

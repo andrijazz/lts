@@ -10,6 +10,10 @@ from utils.svhn_loader import SVHN
 def build_dataset(dataset_name, transform, train=False):
     dataset_dir = os.getenv('DATASETS')
 
+    if dataset_name == 'fake_cifar10':
+        dataset = torchvision.datasets.ImageFolder(os.path.join(dataset_dir, 'fake_cifar10'), transform=transform)
+        return dataset
+
     # cifar10
     if dataset_name == "cifar10":
         dataset = torchvision.datasets.CIFAR10(dataset_dir, transform=transform, train=train, download=False)

@@ -12,4 +12,4 @@ config:
     # scoring method
     scoring_method: "energy"
     # method
-    method: "losh_2d@95"
+    method: "lts@95"

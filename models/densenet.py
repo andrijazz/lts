@@ -126,6 +126,7 @@ class DenseNet3(nn.Module):
         out = self.relu(self.bn1(out))
         out = F.avg_pool2d(out, 8)
         if hasattr(self, "ood_detector") and hasattr(self, "ood_method_name"):
+            out = out.view((out.shape[0], out.shape[1]))
             if self.ood_method_name != "lts":
                 out = self.ood_detector(out)
                 out = self.fc(out)
