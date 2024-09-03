@@ -244,13 +244,13 @@ class ResNet(nn.Module):
             if self.ood_method_name != "lts":
                 x = self.ood_detector(x)
                 x = self.fc(x)
+                s = 1
             else:
                 s = self.ood_detector(x)
                 x = self.fc(x)
-                x = x * s
         else:
             x = self.fc(x)
-        return x
+        return x, s
 
     def forward(self, x: Tensor):
         return self._forward_impl(x)

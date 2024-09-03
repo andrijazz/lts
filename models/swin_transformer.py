@@ -614,13 +614,13 @@ class SwinTransformer(nn.Module):
             if self.ood_method_name != "lts":
                 x = self.ood_detector(x)
                 x = self.head(x)
+                s = 1
             else:
                 s = self.ood_detector(x)
                 x = self.head(x)
-                x = x * s
         else:
             x = self.head(x)
-        return x
+        return x, s
 
 
 def _swin_transformer(

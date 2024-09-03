@@ -269,13 +269,13 @@ class VisionTransformer(nn.Module):
             if self.ood_method_name != "lts":
                 x = self.ood_detector(x)
                 x = self.heads(x)
+                s = 1
             else:
                 s = self.ood_detector(x)
                 x = self.heads(x)
-                x = x * s
         else:
             x = self.heads(x)
-        return x
+        return x, s
 
 
 def _vision_transformer(

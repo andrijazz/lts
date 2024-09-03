@@ -63,7 +63,7 @@ def eval_id_dataset(model, transform, dataset_name, output_dir, batch_size, scor
                 images = images.cuda(non_blocking=True)
                 labels = labels.cuda(non_blocking=True)
 
-            logits = model(images)
+            logits, s = model(images)
             outputs = F.softmax(logits, dim=1)
             outputs = outputs.detach().cpu().numpy()
             preds = np.argmax(outputs, axis=1)
@@ -72,7 +72,7 @@ def eval_id_dataset(model, transform, dataset_name, output_dir, batch_size, scor
             for k in range(preds.shape[0]):
                 g1.write("{} {} {}\n".format(labels[k], preds[k], confs[k]))
 
-            scores = get_score(logits, scoring_method)
+            scores = get_score(logits * s, scoring_method)
             for score in scores:
                 f1.write("{}\n".format(score))
 
@@ -114,8 +114,8 @@ def eval_ood_dataset(model, transform, dataset_name, output_dir, batch_size, sco
             if use_gpu:
                 images = images.cuda(non_blocking=True)
 
-            logits = model(images)
-            scores = get_score(logits, scoring_method)
+            logits, s = model(images)
+            scores = get_score(logits * s, scoring_method)
             for score in scores:
                 f1.write("{}\n".format(score))
 

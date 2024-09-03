@@ -130,10 +130,10 @@ class DenseNet3(nn.Module):
             if self.ood_method_name != "lts":
                 out = self.ood_detector(out)
                 out = self.fc(out)
+                s = 1
             else:
                 s = self.ood_detector(out)
                 out = self.fc(out)
-                out = out * s
         else:
             out = self.fc(out)
-        return out
+        return out, s

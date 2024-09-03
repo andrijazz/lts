@@ -148,14 +148,14 @@ class MlpMixer(nn.Module):
             if self.ood_method_name != "lts":
                 x = self.ood_detector(x)
                 logits = self.head(x)
+                s = 1
             else:
                 s = self.ood_detector(x)
                 logits = self.head(x)
-                logits = logits * s
         else:
             logits = self.head(x)
 
-        return logits
+        return logits, s
 
     def fc(self, x):
         return self.head(x)

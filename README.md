@@ -54,7 +54,7 @@ for i, data in enumerate(testloader):
     logits, s = net(inputs)
     
     # get ood predictions
-    ood_prediction = get_score(logits * s[:, None])
+    ood_prediction = get_score(logits * s)
 ```
 
 ## Citations
