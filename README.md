@@ -60,3 +60,12 @@ for i, data in enumerate(testloader):
 ## Citations
 
 If you use our codebase, please cite our work:
+
+```bibtext
+@article{djurisic2024logit,
+  title={Logit Scaling for Out-of-Distribution Detection},
+  author={Djurisic, Andrija and Liu, Rosanne and Nikolic, Mladen},
+  journal={arXiv preprint arXiv:2409.01175},
+  year={2024}
+}
+```
