@@ -1,12 +1,12 @@
 # LTS
 
-Logit Scaling for OOD detection.
+This repository contains the code for the paper [Logit Scaling for OOD detection](https://arxiv.org/abs/2409.01175).
 
 ![](https://github.com/andrijazz/lts/blob/main/resources/lts.gif)
 
 ## Setup
 
-```bash
+```ba[sh
 # create conda env and install dependencies
 $ conda env create -f environment.yml
 $ conda activate lts
