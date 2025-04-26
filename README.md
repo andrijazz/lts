@@ -6,13 +6,15 @@ This repository contains the code for the paper [Logit Scaling for OOD detection
 
 ## Setup
 
-```ba[sh
+```bash
 # create conda env and install dependencies
 $ conda env create -f environment.yml
 $ conda activate lts
+
 # set environmental variables
 $ export DATASETS=<your_path_to_datasets_folder>
 $ export MODELS=<your_path_to_checkpoints_folder>
+
 # download datasets and checkpoints
 $ bash scripts/download.sh
 ```
@@ -21,6 +23,7 @@ Please download ImageNet dataset manually to `$DATASET` dir by following [this](
 ## Run
 
 To reproduce results from the paper, run the following commands:
+
 ```bash
 $ python ood_eval.py --config config/cifar10_config.yml --use-gpu --use-tqdm
 $ python ood_eval.py --config config/cifar100_config.yml --use-gpu --use-tqdm
@@ -61,7 +64,7 @@ for i, data in enumerate(testloader):
 
 If you use our codebase, please cite our work:
 
-```bibtext
+```bibtex
 @article{djurisic2024logit,
   title={Logit Scaling for Out-of-Distribution Detection},
   author={Djurisic, Andrija and Liu, Rosanne and Nikolic, Mladen},

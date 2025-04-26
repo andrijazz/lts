@@ -87,7 +87,7 @@ def get_ood_detector(method):
             return lambda x: scale(x, int(p)), fn
         if fn == 'react':
             return lambda x: react(x, int(p)), fn
-
     except Exception as e:
         print(e)
-        exit('Unsupported ood method')
+    print("No ood method specified")
+    return None, None

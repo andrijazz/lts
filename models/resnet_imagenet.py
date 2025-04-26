@@ -250,6 +250,7 @@ class ResNet(nn.Module):
                 x = self.fc(x)
         else:
             x = self.fc(x)
+            s = 1
         return x, s
 
     def forward(self, x: Tensor):
