@@ -2,7 +2,7 @@
 
 This repository contains the code for the paper [Logit Scaling for OOD detection](https://arxiv.org/abs/2409.01175).
 
-![](https://github.com/andrijazz/lts/blob/main/resources/lts.gif)
+![](https://github.com/andrijazz/lts/blob/main/resources/overview_figure.jpg)
 
 ## Setup
 
